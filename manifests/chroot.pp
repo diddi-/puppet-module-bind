@@ -11,7 +11,6 @@ class bind::chroot (
   file { "$path": 
     ensure => 'directory',
     require => Common::Mkdir_p["${path}"],
-    notify  => Service['bind'],
   }
 
   file { "${path}/dev": 
