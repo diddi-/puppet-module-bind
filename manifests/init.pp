@@ -8,6 +8,7 @@ class bind (
   $fs_root              = '/',
   $masters              = undef,
   $manage_default_file  = 'USE_DEFAULTS',
+  $pidfile              = 'USE_DEFAULTS',
   $rndc_binary          = 'USE_DEFAULTS',
   $rundir               = 'USE_DEFAULTS',
   $symlink_etc          = true,
@@ -24,6 +25,7 @@ class bind (
       $default_manage_default_file  = true
       $default_default_file_path = '/etc/default/bind9'
       $default_bind_package = 'bind9'
+      $default_pidfile = '/var/run/named/named.pid'
       $default_rundir = '/var/run/named'
       $default_rndc_binary = '/usr/sbin/rndc-confgen'
     }
@@ -34,6 +36,13 @@ class bind (
 
   validate_re($ensure, "^(running|true|stopped|false)$")
   validate_string($user)
+
+  if $pidfile == 'USE_DEFAULTS' {
+    $pidfile_real = $default_pidfile
+  } else {
+    $pidfile_real = $pidfile
+  }
+  validate_absolute_path($pidfile_real)
 
   if $chroot_path != undef {
     include bind::chroot
@@ -145,7 +154,7 @@ class bind (
     require => [Common::Mkdir_p["${fs_root_real}/${rundir_real}"]],
   }
 
-  if $chroot_path != undef {
+  if $chroot_path == undef {
     file { "$fs_root_real/etc/bind/named.conf": 
       ensure   => file,
       owner    => $bind::user,
@@ -158,6 +167,7 @@ class bind (
       name   => $bind_name_real,
       ensure => $ensure,
       enable => true,
+      hasrestart => true,
       require => Package[$bind_package_real],
     }
   } else {
@@ -173,6 +183,7 @@ class bind (
       name   => $bind_name_real,
       ensure => $ensure,
       enable => true,
+      hasrestart => true,
       require => [Package[$bind_package_real], Class['bind::chroot']],
     }
   }

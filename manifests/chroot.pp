@@ -46,4 +46,10 @@ class bind::chroot (
       force  => true,
     }
   }
+
+  file { "${bind::pidfile_real}":
+    ensure => 'link',
+    target => "${path}/$bind::pidfile_real",
+    force  => true,
+  }
 }
