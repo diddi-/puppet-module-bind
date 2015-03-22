@@ -1,0 +1,11 @@
+##### THIS FILE IS MANAGED BY PUPPET #####
+#####          DO NOT EDIT           #####
+
+# run resolvconf?
+RESOLVCONF=no
+
+# startup options for the server
+OPTIONS="<% if scope.lookupvar('bind::user') -%>
+-u <%= scope.lookupvar('bind::user') %><% end -%>
+<% if scope.lookupvar('bind::chroot_path') != :undef -%>
+ -t <%= scope.lookupvar('bind::chroot_path') %><% end -%>"

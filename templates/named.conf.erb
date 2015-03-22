@@ -1,0 +1,118 @@
+##### THIS FILE IS MANAGED BY PUPPET #####
+#####          DO NOT EDIT           #####
+
+<% if scope.lookupvar('bind::masters') != :undef -%>
+<% scope.lookupvar('bind::masters').each_pair do |name, data| -%>
+masters <%= name %> {
+<% data.each do |master| -%>
+    <%= master %>;
+<% end -%>
+};
+
+<% end -%>
+<% end -%>
+<% if scope.lookupvar('bind::acl') != :undef -%>
+<% scope.lookupvar('bind::acl').each_pair do |name, data| -%>
+acl <%= name %> {
+<% data.each do |acl| -%>
+    <%= acl %>;
+<% end -%>
+};
+
+<% end -%>
+<% end -%>
+options {
+    directory "<%= scope.lookupvar('bind::options::directory') %>";
+
+<% if scope.lookupvar('bind::options::dnssec_validation') -%>
+    dnssec-validation <%= scope.lookupvar('bind::options::dnssec_validation') %>;
+<% end -%>
+<% if scope.lookupvar('bind::options::auth_nxdomain') -%>
+    auth-nxdomain <%= scope.lookupvar('bind::options::auth_nxdomain') %>;
+<% end -%>
+<% if scope.lookupvar('bind::options::listen_on_v6') -%>
+    listen-on-v6 {
+<% scope.lookupvar('bind::options::listen_on_v6').each do |listen| -%>
+      <%= listen %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::allow_transfer') -%>
+    allow-transfer {
+<% scope.lookupvar('bind::options::allow_transfer').each do |transfer| -%>
+      <%= transfer %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::allow_query') -%>
+    allow-query {
+<% scope.lookupvar('bind::options::allow_query').each do |query| -%>
+      <%= query %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::allow_recursion') -%>
+    allow-recursion {
+<% scope.lookupvar('bind::options::allow_recursion').each do |recursion| -%>
+      <%= recursion %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::allow_recursion_on') -%>
+    allow-recursion-on {
+<% scope.lookupvar('bind::options::allow_recursion_on').each do |recursion| -%>
+      <%= recursion %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::allow_query_cache') -%>
+    allow-query-cache {
+<% scope.lookupvar('bind::options::allow_query_cache').each do |cache| -%>
+      <%= cache %>;
+<% end -%>
+    };
+<% end -%>
+<% if scope.lookupvar('bind::options::version') -%>
+    version <%= scope.lookupvar('bind::options::version') %>;
+<% end -%> 
+};
+
+<% if scope.lookupvar('bind::options::root_hint_real') == true -%>
+zone "." {
+    type hint;
+    file "/etc/bind/db.root";
+};
+<% end -%>
+
+<% if scope.lookupvar('bind::zones') != :undef -%>
+<% scope.lookupvar('bind::zones').each_pair do |zone, opts| -%>
+zone "<%= zone %>" {
+    type <%= opts['type'] %>;
+    file "<%= opts['file'] %>";
+<% if opts.has_key?('notifications') -%>
+    notify <%= opts['notifications'] %>;
+<% end -%>
+<% if opts.has_key?('also_notify') -%>
+    also-notify {
+<% opts['also_notify'].each do |notify| -%>
+      <%= notify %>;
+<% end -%>
+    };
+<% end -%>
+<% if opts.has_key?('allow_query') -%>
+    allow-query {
+<% opts['allow_query'].each do |query| -%>
+      <%= query %>;
+<% end -%>
+    };
+<% end -%>
+<% if opts.has_key?('masters') -%>
+    masters {
+<% opts['masters'].each do |master| -%>
+      <%= master %>;
+<% end -%>
+    };
+<% end -%>
+<% end -%>
+};
+<% end -%>
