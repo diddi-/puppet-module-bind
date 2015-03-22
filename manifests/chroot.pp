@@ -32,4 +32,18 @@ class bind::chroot (
     minor   => '3',
     require => File["${path}/dev"],
   }
+
+  if is_string($bind::symlink_etc) == true {
+    $symlink_etc_real = str2bool($bind::symlink_etc)
+  } else {
+    $symlink_etc_real = $bind::symlink_etc
+  }
+
+  if $symlink_etc_real == true {
+    file{ "/etc/bind":
+      ensure => "link",
+      target => "${path}/etc/bind/",
+      force  => true,
+    }
+  }
 }

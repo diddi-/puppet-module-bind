@@ -8,7 +8,9 @@ class bind (
   $fs_root              = '/',
   $masters              = undef,
   $manage_default_file  = 'USE_DEFAULTS',
+  $rndc_binary          = 'USE_DEFAULTS',
   $rundir               = 'USE_DEFAULTS',
+  $symlink_etc          = true,
   $user                 = 'bind',
   $zone_path            = '/etc/bind/zones',
   $zones                = undef,
@@ -23,6 +25,7 @@ class bind (
       $default_default_file_path = '/etc/default/bind9'
       $default_bind_package = 'bind9'
       $default_rundir = '/var/run/named'
+      $default_rndc_binary = '/usr/sbin/rndc-confgen'
     }
     default: {
       fail("bind module is not supported on $::operatingsystem.")
@@ -74,6 +77,12 @@ class bind (
     validate_hash($masters)
   }
 
+  if $rndc_binary == 'USE_DEFAULTS' {
+    $rndc_binary_real = $default_rndc_binary
+  } else {
+    $rndc_binary_real = $rndc_binary
+  }
+
   if $rundir == 'USE_DEFAULTS' {
     $rundir_real = $default_rundir
   } else {
@@ -122,6 +131,11 @@ class bind (
     owner   => $bind::user,
     content => template("bind/db.root.erb"),
     require => [File["${fs_root_real}/etc/bind"]],
+  }
+  exec { "${fs_root_real}/etc/bind/rndc.key":
+    command => "${rndc_binary_real} -t ${fs_root_real} -a",
+    creates => "${fs_root_real}/etc/bind/rndc.key",
+    user    => $bind::user,
   }
 
   common::mkdir_p{"${fs_root_real}/${rundir_real}": }
