@@ -88,7 +88,13 @@ zone "." {
 <% scope.lookupvar('bind::zones').each_pair do |zone, opts| -%>
 zone "<%= zone %>" {
     type <%= opts['type'] %>;
-    file "<%= opts['file'] %>";
+<% if opts.has_key?('path') then path_real = opts['path'] -%>
+<% else path_real = scope.lookupvar('bind::zone_path') -%>
+<% end -%>
+<% if opts.has_key?('file') then file_real = opts['file'] -%>
+<% else file_real = "db."+zone -%>
+<% end -%>
+    file "<%= path_real %>/<%= file_real %>";
 <% if opts.has_key?('notifications') -%>
     notify <%= opts['notifications'] %>;
 <% end -%>

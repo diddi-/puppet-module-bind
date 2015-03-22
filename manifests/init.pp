@@ -8,7 +8,9 @@ class bind (
   $fs_root              = '/',
   $masters              = undef,
   $manage_default_file  = 'USE_DEFAULTS',
+  $rundir               = 'USE_DEFAULTS',
   $user                 = 'bind',
+  $zone_path            = '/etc/bind/zones',
   $zones                = undef,
 ) {
 
@@ -20,6 +22,7 @@ class bind (
       $default_manage_default_file  = true
       $default_default_file_path = '/etc/default/bind9'
       $default_bind_package = 'bind9'
+      $default_rundir = '/var/run/named'
     }
     default: {
       fail("bind module is not supported on $::operatingsystem.")
@@ -71,6 +74,15 @@ class bind (
     validate_hash($masters)
   }
 
+  if $rundir == 'USE_DEFAULTS' {
+    $rundir_real = $default_rundir
+  } else {
+    $rundir_real = $rundir
+  }
+  validate_absolute_path($rundir_real)
+
+  validate_absolute_path($zone_path)
+
   if $zones != undef {
     validate_hash($zones)
     create_resources('bind::verify_zones', $zones)
@@ -110,6 +122,13 @@ class bind (
     owner   => $bind::user,
     content => template("bind/db.root.erb"),
     require => [File["${fs_root_real}/etc/bind"]],
+  }
+
+  common::mkdir_p{"${fs_root_real}/${rundir_real}": }
+  file { "${fs_root_real}/${rundir_real}":
+    ensure  => 'directory',
+    owner   => $bind::user,
+    require => [Common::Mkdir_p["${fs_root_real}/${rundir_real}"]],
   }
 
   if $chroot_path != undef {

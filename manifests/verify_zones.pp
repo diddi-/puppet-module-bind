@@ -4,6 +4,7 @@ define bind::verify_zones (
   $file           = undef,
   $masters        = undef,
   $notifications  = undef,
+  $path           = undef,
   $type           = undef,
 ) {
 
@@ -16,9 +17,7 @@ define bind::verify_zones (
   }
 
   if $file != undef {
-    validate_absolute_path($file)
-  } else {
-    fail("Missing mandatory parameter 'file' in bind::zones::${name}.")
+    validate_string($file)
   }
 
   if $masters != undef {
@@ -32,6 +31,18 @@ define bind::verify_zones (
   if $notifications != undef {
     validate_re($notifications, "^(yes|no)$")
   }
+
+  if $path != undef {
+    $path_real = $path
+  } else {
+    $path_real = $bind::zone_path
+  }
+
+  validate_absolute_path($path_real)
+  include common
+  common::mkdir_p{"${bind::fs_root_real}/${path_real}": }
+
+  ensure_resource('file', "${bind::fs_root_real}/$path_real", { ensure => 'directory', owner => $bind::user, require => Common::Mkdir_p["${bind::fs_root_real}/$path_real"] } )
 
   if $type != undef {
     validate_re($type, "^(master|slave|hint)$")
