@@ -45,7 +45,6 @@ class bind (
   validate_absolute_path($pidfile_real)
 
   if $chroot_path != undef {
-    include bind::chroot
     $fs_root_real = $chroot_path
   } else {
     $fs_root_real = $fs_root
@@ -145,6 +144,7 @@ class bind (
     command => "${rndc_binary_real} -t ${fs_root_real} -a",
     creates => "${fs_root_real}/etc/bind/rndc.key",
     user    => $bind::user,
+    require => [Package[$bind_package_real], File["${fs_root_real}/etc/bind"]],
   }
 
   common::mkdir_p{"${fs_root_real}/${rundir_real}": }
@@ -171,6 +171,7 @@ class bind (
       require => Package[$bind_package_real],
     }
   } else {
+    include bind::chroot
     file { "$fs_root_real/etc/bind/named.conf": 
       ensure   => file,
       owner    => $bind::user,
