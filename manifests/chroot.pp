@@ -49,9 +49,11 @@ class bind::chroot (
 
   # Workaround to fix the named.pid path
   # as debian init-script insist on hardcoding the path...
+  # NOTE: This is hack. Not a solution.
   exec { "stop-bind-once":
     command => "/etc/init.d/${bind::bind_name_real} stop",
     require => Package[$bind::bind_package_real],
+    unless  => "/usr/bin/test -f ${bind::pidfile_real}",
   }
 
   file { "${bind::pidfile_real}":
